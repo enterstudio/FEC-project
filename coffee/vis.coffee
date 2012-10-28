@@ -174,7 +174,7 @@ class BubbleChart
     years = @vis.selectAll(".years").remove()
 
   show_details: (data, i, element) =>
-    d3.select(element).attr("stroke", "black")
+    d3.select(element).attr("stroke", "white")
     content = "<span class=\"name\">Title:</span><span class=\"value\"> #{data.name}</span><br/>"
     content +="<span class=\"name\">Amount:</span><span class=\"value\"> $#{addCommas(data.value)}</span><br/>"
     content +="<span class=\"name\">Year:</span><span class=\"value\"> #{data.year}</span>"
