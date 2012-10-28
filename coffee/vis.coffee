@@ -11,11 +11,13 @@ class BubbleChart
     # depending on which view is currently being
     # used
     @center = {x: @width / 2, y: @height / 2}
+    ###
     @year_centers = {
       "2008": {x: @width / 3, y: @height / 2},
       "2009": {x: @width / 2, y: @height / 2},
       "2010": {x: 2 * @width / 3, y: @height / 2}
     }
+    ###
 
     # used when setting up force and
     # moving around nodes
@@ -34,7 +36,7 @@ class BubbleChart
       .range(["#694489", "#3D59AB", "#7093DB"])
 
     # use the max total_amount in the data as the max in the scale's domain
-    max_amount = d3.max(@data, (d) -> parseInt(d.total_amount))
+    max_amount = d3.max(@data, (d) -> parseInt(d.exp_amount))
     @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([2, 85])
     
     this.create_nodes()
@@ -48,12 +50,10 @@ class BubbleChart
     @data.forEach (d) =>
       node = {
         id: d.id
-        radius: @radius_scale(parseInt(d.total_amount))
-        value: d.total_amount
-        name: d.grant_title
-        org: d.organization
-        group: d.group
-        year: d.start_year
+    	radius: @radius_scale(parseInt(d.exp_amount))
+        amount: d.exp_amount
+        name: d.spe_nam
+        date: d.exp_date
         x: Math.random() * 900
         y: Math.random() * 800
       }
@@ -136,6 +136,7 @@ class BubbleChart
 
   # sets the display of bubbles to be separated
   # into each year. Does this by calling move_towards_year
+###
   display_by_year: () =>
     @force.gravity(@layout_gravity)
       .charge(this.charge)
@@ -147,8 +148,11 @@ class BubbleChart
     @force.start()
 
     this.display_years()
+###
 
   # move all circles to their associated @year_centers 
+
+###
   move_towards_year: (alpha) =>
     (d) =>
       target = @year_centers[d.year]
@@ -172,12 +176,13 @@ class BubbleChart
   # Method to hide year titiles
   hide_years: () =>
     years = @vis.selectAll(".years").remove()
+###
 
   show_details: (data, i, element) =>
-    d3.select(element).attr("stroke", "white")
+    d3.select(element).attr("stroke", "black")
     content = "<span class=\"name\">Title:</span><span class=\"value\"> #{data.name}</span><br/>"
-    content +="<span class=\"name\">Amount:</span><span class=\"value\"> $#{addCommas(data.value)}</span><br/>"
-    content +="<span class=\"name\">Year:</span><span class=\"value\"> #{data.year}</span>"
+    content +="<span class=\"name\">Amount:</span><span class=\"value\"> $#{addCommas(data.amount)}</span><br/>"
+    content +="<span class=\"name\">Date:</span><span class=\"value\"> #{data.date}</span>"
     @tooltip.showTooltip(content,d3.event)
 
 
@@ -205,4 +210,4 @@ $ ->
     else
       root.display_all()
 
-  d3.csv "data/gates_money.csv", render_vis
+  d3.csv "data/FEC_draft.csv", render_vis
