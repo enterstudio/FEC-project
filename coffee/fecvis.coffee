@@ -117,8 +117,6 @@ class BubbleChart
           .attr("cy", (d) -> d.y)
     @force.start()
 
-    this.hide_years()
-
   # Moves all circles towards the @center
   # of the visualization
   move_towards_center: (alpha) =>
@@ -129,9 +127,9 @@ class BubbleChart
 
   show_details: (data, i, element) =>
     d3.select(element).attr("stroke", "black")
-    content = "<span class=\"name\">Title:</span><span class=\"value\"> #{data.name}</span><br/>"
+    content = "<span class=\"name\">Name:</span><span class=\"value\"> #{data.group}</span><br/>"
     content +="<span class=\"name\">Amount:</span><span class=\"value\"> $#{addCommas(data.value)}</span><br/>"
-    content +="<span class=\"name\">Year:</span><span class=\"value\"> #{data.year}</span>"
+    content +="<span class=\"name\">Lean:</span><span class=\"value\"> #{data.lean}</span>"
     @tooltip.showTooltip(content,d3.event)
 
 
@@ -149,7 +147,5 @@ $ ->
     chart = new BubbleChart csv
     chart.start()
     root.display_all()
-  root.display_all = () =>
-    chart.display_group_all()
 
   d3.csv "data/FEC_short.csv", render_vis

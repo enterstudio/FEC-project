@@ -17,11 +17,6 @@ footer {
   margin-top: 10px;
 }
 
-.years {
-  font-size: 21px;
-  fill: #aaa;
-}
-
 .tooltip {
 	position: absolute;
 	top: 100px;
