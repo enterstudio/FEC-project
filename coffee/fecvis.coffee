@@ -25,7 +25,7 @@ class BubbleChart
     # nice looking colors - no reason to buck the trend
     @fill_color = d3.scale.ordinal()
       .domain(["Conservative", "Liberal", "None"])
-      .range([#E3170D, "#4169E1", "#424242"])
+      .range(["#E3170D", "#4169E1", "#424242"])
 
     # use the max total_amount in the data as the max in the scale's domain
     max_amount = d3.max(@data, (d) -> parseInt(d.total))

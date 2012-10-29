@@ -11,9 +11,9 @@ class BubbleChart
     # used
     @center = {x: @width / 2, y: @height / 2}
     @year_centers = {
-      "2008": {x: @width / 3, y: @height / 2},
-      "2009": {x: @width / 2, y: @height / 2},
-      "2010": {x: 2 * @width / 3, y: @height / 2}
+      "Liberal": {x: @width / 3, y: @height / 2},
+      "None": {x: @width / 2, y: @height / 2},
+      "Conservative" {x: 2 * @width / 3, y: @height / 2}
     }
 
     # used when setting up force and
@@ -27,13 +27,13 @@ class BubbleChart
     @force = null
     @circles = null
 
-    # nice looking colors - no reason to buck the trend
+    # Changed colors to political themes
     @fill_color = d3.scale.ordinal()
-      .domain(["low", "medium", "high"])
-      .range(["#d84b2a", "#beccae", "#7aa25c"])
+      .domain(["Conservative", "None", "Liberal"])
+      .range(["#E3170D", "#424242", "#4169E1"])
 
     # use the max total_amount in the data as the max in the scale's domain
-    max_amount = d3.max(@data, (d) -> parseInt(d.total_amount))
+    max_amount = d3.max(@data, (d) -> parseInt(d.total))
     @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([2, 85])
     
     this.create_nodes()
@@ -47,12 +47,10 @@ class BubbleChart
     @data.forEach (d) =>
       node = {
         id: d.id
-        radius: @radius_scale(parseInt(d.total_amount))
-        value: d.total_amount
-        name: d.grant_title
-        org: d.organization
-        group: d.group
-        year: d.start_year
+        radius: @radius_scale(parseInt(d.total))
+        value: d.total
+        name: d.group
+        leaning: d.leaning
         x: Math.random() * 900
         y: Math.random() * 800
       }
@@ -80,9 +78,9 @@ class BubbleChart
     # see transition below
     @circles.enter().append("circle")
       .attr("r", 0)
-      .attr("fill", (d) => @fill_color(d.group))
+      .attr("fill", (d) => @fill_color(d.leaning))
       .attr("stroke-width", 2)
-      .attr("stroke", (d) => d3.rgb(@fill_color(d.group)).darker())
+      .attr("stroke", (d) => d3.rgb(@fill_color(d.leaning)).darker())
       .attr("id", (d) -> "bubble_#{d.id}")
       .on("mouseover", (d,i) -> that.show_details(d,i,this))
       .on("mouseout", (d,i) -> that.hide_details(d,i,this))
@@ -124,7 +122,7 @@ class BubbleChart
           .attr("cy", (d) -> d.y)
     @force.start()
 
-    this.hide_years()
+    this.hide_leaning()
 
   # Moves all circles towards the @center
   # of the visualization
@@ -135,53 +133,53 @@ class BubbleChart
 
   # sets the display of bubbles to be separated
   # into each year. Does this by calling move_towards_year
-  display_by_year: () =>
+  display_by_leaning: () =>
     @force.gravity(@layout_gravity)
       .charge(this.charge)
       .friction(0.9)
       .on "tick", (e) =>
-        @circles.each(this.move_towards_year(e.alpha))
+        @circles.each(this.move_towards_leaning(e.alpha))
           .attr("cx", (d) -> d.x)
           .attr("cy", (d) -> d.y)
     @force.start()
 
-    this.display_years()
+    this.display_leaning()
 
   # move all circles to their associated @year_centers 
-  move_towards_year: (alpha) =>
+  move_towards_leaning: (alpha) =>
     (d) =>
-      target = @year_centers[d.year]
+      target = @leaning_centers[d.year]
       d.x = d.x + (target.x - d.x) * (@damper + 0.02) * alpha * 1.1
       d.y = d.y + (target.y - d.y) * (@damper + 0.02) * alpha * 1.1
 
   # Method to display year titles
-  display_years: () =>
-    years_x = {"2008": 160, "2009": @width / 2, "2010": @width - 160}
-    years_data = d3.keys(years_x)
-    years = @vis.selectAll(".years")
-      .data(years_data)
+  # display_years: () =>
+    # years_x = {"Liberal": 160, "None": @width / 2, "Conservative": @width - 160}
+    # years_data = d3.keys(leaning_x)
+    # years = @vis.selectAll(".leaning")
+	# .data(leaning_data)
 
-    years.enter().append("text")
-      .attr("class", "years")
-      .attr("x", (d) => years_x[d] )
-      .attr("y", 40)
-      .attr("text-anchor", "middle")
-      .text((d) -> d)
+    # years.enter().append("text")
+      # .attr("class", "years")
+      # .attr("x", (d) => years_x[d] )
+      # .attr("y", 40)
+      # .attr("text-anchor", "middle")
+      # .text((d) -> d)
 
   # Method to hide year titiles
-  hide_years: () =>
-    years = @vis.selectAll(".years").remove()
+  # hide_years: () =>
+  # years = @vis.selectAll(".leaning").remove()
 
   show_details: (data, i, element) =>
     d3.select(element).attr("stroke", "black")
     content = "<span class=\"name\">Title:</span><span class=\"value\"> #{data.name}</span><br/>"
     content +="<span class=\"name\">Amount:</span><span class=\"value\"> $#{addCommas(data.value)}</span><br/>"
-    content +="<span class=\"name\">Year:</span><span class=\"value\"> #{data.year}</span>"
+    content +="<span class=\"name\">Year:</span><span class=\"value\"> #{data.leaning}</span>"
     @tooltip.showTooltip(content,d3.event)
 
 
   hide_details: (data, i, element) =>
-    d3.select(element).attr("stroke", (d) => d3.rgb(@fill_color(d.group)).darker())
+    d3.select(element).attr("stroke", (d) => d3.rgb(@fill_color(d.leaning)).darker())
     @tooltip.hideTooltip()
 
 
@@ -196,12 +194,12 @@ $ ->
     root.display_all()
   root.display_all = () =>
     chart.display_group_all()
-  root.display_year = () =>
-    chart.display_by_year()
+  root.display_leaning = () =>
+    chart.display_by_leaning()
   root.toggle_view = (view_type) =>
-    if view_type == 'year'
-      root.display_year()
+    if view_type == 'leaning'
+      root.display_leaning()
     else
       root.display_all()
 
-  d3.csv "data/gates_money.csv", render_vis
+  d3.csv "data/FEC_short.csv", render_vis
