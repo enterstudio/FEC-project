@@ -196,12 +196,5 @@ $ ->
     root.display_all()
   root.display_all = () =>
     chart.display_group_all()
-  root.display_year = () =>
-    chart.display_by_year()
-  root.toggle_view = (view_type) =>
-    if view_type == 'year'
-      root.display_year()
-    else
-      root.display_all()
 
   d3.csv "data/gates_money.csv", render_vis

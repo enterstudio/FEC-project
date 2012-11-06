@@ -6,22 +6,11 @@ class BubbleChart
 
     @tooltip = CustomTooltip("gates_tooltip", 240)
 
-    # locations the nodes will move towards
-    # depending on which view is currently being
-    # used
     @center = {x: @width / 2, y: @height / 2}
-    @leaning_centers = {
-      "Liberal": {x: @width / 3, y: @height / 2},
-      "None": {x: @width / 2, y: @height / 2},
-      "Conservative" {x: 2 * @width / 3, y: @height / 2}
-    }
 
-    # used when setting up force and
-    # moving around nodes
     @layout_gravity = -0.01
     @damper = 0.1
 
-    # these will be set in create_nodes and create_vis
     @vis = null
     @nodes = []
     @force = null
@@ -32,17 +21,12 @@ class BubbleChart
       .domain(["Conservative", "None", "Liberal"])
       .range(["#E3170D", "#424242", "#4169E1"])
 
-    # use the max total_amount in the data as the max in the scale's domain
     max_amount = d3.max(@data, (d) -> parseInt(d.total))
-    @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([])
+    @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([2,85])
     
     this.create_nodes()
     this.create_vis()
 
-  # create node objects from original data
-  # that will serve as the data behind each
-  # bubble in the vis, then add each node
-  # to @nodes to be used later
   create_nodes: () =>
     @data.forEach (d) =>
       node = {
@@ -54,7 +38,8 @@ class BubbleChart
         x: Math.random() * 900
         y: Math.random() * 800
       }
-    @nodes.push node
+      
+      @nodes.push node
 
     @nodes.sort (a,b) -> b.value - a.value
 
@@ -70,8 +55,7 @@ class BubbleChart
     @circles = @vis.selectAll("circle")
       .data(@nodes, (d) -> d.id)
 
-    # used because we need 'this' in the 
-    # mouse callbacks
+
     that = this
 
     # radius will be set to 0 initially.
@@ -84,24 +68,11 @@ class BubbleChart
       .attr("id", (d) -> "bubble_#{d.id}")
       .on("mouseover", (d,i) -> that.show_details(d,i,this))
       .on("mouseout", (d,i) -> that.hide_details(d,i,this))
-
-    # Fancy transition to make bubbles appear, ending with the
-    # correct radius
-    @circles.transition().duration(2000).attr("r", (d) -> d.radius)
-
-
-  # Charge function that is called for each node.
-  # Charge is proportional to the diameter of the
-  # circle (which is stored in the radius attribute
-  # of the circle's associated data.
-  # This is done to allow for accurate collision 
-  # detection with nodes of different sizes.
-  # Charge is negative because we want nodes to 
-  # repel.
-  # Dividing by 8 scales down the charge to be
-  # appropriate for the visualization dimensions.
+      
+    @circles.transition().duration(2000).attr("r", (d) => d.radius)
+    
   charge: (d) ->
-    -Math.pow(d.radius, 2.0) / 8
+    -Math.pow(d.radius, 2.0) / 6
 
   # Starts up the force layout with
   # the default values
@@ -122,53 +93,12 @@ class BubbleChart
           .attr("cy", (d) -> d.y)
     @force.start()
 
-    this.hide_leaning()
-
   # Moves all circles towards the @center
   # of the visualization
   move_towards_center: (alpha) =>
     (d) =>
-      d.x = d.x + (@center.x - d.x) * (@damper + 0.02) * alpha
-      d.y = d.y + (@center.y - d.y) * (@damper + 0.02) * alpha
-
-  # sets the display of bubbles to be separated
-  # into each year. Does this by calling move_towards_year
-  display_by_leaning: () =>
-    @force.gravity(@layout_gravity)
-      .charge(this.charge)
-      .friction(0.9)
-      .on "tick", (e) =>
-        @circles.each(this.move_towards_leaning(e.alpha))
-          .attr("cx", (d) -> d.x)
-          .attr("cy", (d) -> d.y)
-    @force.start()
-
-    this.display_leaning()
-
-  # move all circles to their associated @year_centers 
-  move_towards_leaning: (alpha) =>
-    (d) =>
-      target = @leaning_centers[d.leaning]
-      d.x = d.x + (target.x - d.x) * (@damper + 0.02) * alpha * 1.1
-      d.y = d.y + (target.y - d.y) * (@damper + 0.02) * alpha * 1.1
-
-  # Method to display year titles
-   display_leaning: () =>
-     leaning_x = {"Liberal": 160, "None": @width / 2, "Conservative": @width - 160}
-     leaning_data = d3.keys(leaning_x)
-     leaning = @vis.selectAll(".leaning")
-	 .data(leaning_data)
-
-    # years.enter().append("text")
-       .attr("class", "leaning")
-       .attr("x", (d) => leaning_x[d] )
-       .attr("y", 40)
-       .attr("text-anchor", "middle")
-       .text((d) -> d)
-
-  # Method to hide year titiles
-   hide_leaning: () =>
-   leaning = @vis.selectAll(".leaning").remove()
+      d.x = d.x + (@center.x - d.x) * (@damper + 0.03) * alpha
+      d.y = d.y + (@center.y - d.y) * (@damper + 0.03) * alpha
 
   show_details: (data, i, element) =>
     d3.select(element).attr("stroke", "black")
@@ -188,18 +118,11 @@ root = exports ? this
 $ ->
   chart = null
 
-  render_vis = (json) ->
-    chart = new BubbleChart json
+  render_vis = (csv) ->
+    chart = new BubbleChart csv
     chart.start()
     root.display_all()
   root.display_all = () =>
     chart.display_group_all()
-  root.display_leaning = () =>
-    chart.display_by_leaning()
-  root.toggle_view = (view_type) =>
-    if view_type == 'leaning'
-      root.display_leaning()
-    else
-      root.display_all()
 
-  d3.json "data/fec.json", render_vis
+  d3.csv "data/FEC_short.csv", render_vis
