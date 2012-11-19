@@ -13,16 +13,16 @@ class BubbleChart
 
     @vis = null
     @nodes = []
-    @force  = null
+    @force = null
     @circles = null
 
     # Changed colors to political themes
     @fill_color = d3.scale.ordinal()
-      .domain(["Conservative", "Liberal"])
-      .range(["#E3170D", "#4169E1"])
+      .domain(["Conservative", "None", "Liberal"])
+      .range(["#E3170D", "#424242", "#4169E1"])
 
-    max_amount = d3.max(@data, (d) -> parseInt(d.Liberal+d.Conservative))
-    @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([2,99])
+    max_amount = d3.max(@data, (d) -> parseInt(d.total))
+    @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([2,85])
     
     this.create_nodes()
     this.create_vis()
@@ -31,11 +31,10 @@ class BubbleChart
     @data.forEach (d) =>
       node = {
         id: d.id
-        radius: @radius_scale(parseInt(d.Liberal+d.Conservative))
-        value: d.Liberal+d.Conservative
+        radius: @radius_scale(parseInt(d.total))
+        value: d.total
         name: d.group
-        liberal: d.Liberal
-        conservative: d.Conservative
+        leaning: d.leaning
         x: Math.random() * 900
         y: Math.random() * 800
       }
@@ -52,7 +51,15 @@ class BubbleChart
       .attr("width", @width)
       .attr("height", @height)
       .attr("id", "svg_vis")
- 
+
+    @circles = @vis.selectAll("circle")
+      .data(@nodes, (d) -> d.id)
+
+
+    that = this
+
+    # radius will be set to 0 initially.
+    # see transition below
     @circles.enter().append("circle")
       .attr("r", 0)
       .attr("fill", (d) => @fill_color(d.leaning))
@@ -118,4 +125,4 @@ $ ->
   root.display_all = () =>
     chart.display_group_all()
 
-  d3.csv "data/FEC_new_short.csv", render_vis
+  d3.csv "data/FEC_short.csv", render_vis
