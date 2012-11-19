@@ -52,46 +52,77 @@ class BubbleChart
       .attr("width", @width)
       .attr("height", @height)
       .attr("id", "svg_vis")
- 
-    @circles.enter().append("circle")
-      .attr("r", 0)
-      .attr("fill", (d) => @fill_color(d.leaning))
-      .attr("stroke-width", 2)
-      .attr("stroke", (d) => d3.rgb(@fill_color(d.leaning)).darker())
-      .attr("id", (d) -> "bubble_#{d.id}")
-      .on("mouseover", (d,i) -> that.show_details(d,i,this))
-      .on("mouseout", (d,i) -> that.hide_details(d,i,this))
-      
-    @circles.transition().duration(2000).attr("r", (d) => d.radius)
-    
-  charge: (d) ->
-    -Math.pow(d.radius, 2.0) / 6
 
-  # Starts up the force layout with
-  # the default values
-  start: () =>
-    @force = d3.layout.force()
-      .nodes(@nodes)
-      .size([@width, @height])
+    @node.enter = d3.select("nodes").append("rect")
+      .attr("class", "g-overlay")
+      .attr("width", width)
+      .attr("height", height)
 
-  # Sets up force layout to display
-  # all nodes in one circle.
-  display_group_all: () =>
-    @force.gravity(@layout_gravity)
-      .charge(this.charge)
-      .friction(0.9)
-      .on "tick", (e) =>
-        @circles.each(this.move_towards_center(e.alpha))
-          .attr("cx", (d) -> d.x)
-          .attr("cy", (d) -> d.y)
-    @force.start()
+  democratEnter = nodeEnter.append("g").attr("class", "g-democrat")
+  democratEnter.append("clipPath").attr("id", (d) ->
+    "g-clip-democrat-" + d.id
+  ).append "rect"
+  democratEnter.append "circle"
+  republicanEnter = nodeEnter.append("g").attr("class", "g-republican")
+  republicanEnter.append("clipPath").attr("id", (d) ->
+    "g-clip-republican-" + d.id
+  ).append "rect"
+  republicanEnter.append "circle"
+  nodeEnter.append("line").attr "class", "g-split"
+  node.selectAll("rect").attr("y", (d) ->
+    -d.r - clipPadding
+  ).attr "height", (d) ->
+    2 * d.r + 2 * clipPadding
 
-  # Moves all circles towards the @center
-  # of the visualization
-  move_towards_center: (alpha) =>
-    (d) =>
-      d.x = d.x + (@center.x - d.x) * (@damper + 0.03) * alpha
-      d.y = d.y + (@center.y - d.y) * (@damper + 0.03) * alpha
+  node.select(".g-democrat rect").style("display", (d) ->
+    (if d.k > 0 then null else "none")
+  ).attr("x", (d) ->
+    -d.r - clipPadding
+  ).attr "width", (d) ->
+    2 * d.r * d.k + clipPadding
+
+  node.select(".g-republican rect").style("display", (d) ->
+    (if d.k < 1 then null else "none")
+  ).attr("x", (d) ->
+    -d.r + 2 * d.r * d.k
+  ).attr "width", (d) ->
+    2 * d.r
+
+  node.select(".g-democrat circle").attr "clip-path", (d) ->
+    (if d.k < 1 then "url(#g-clip-democrat-" + d.id + ")" else null)
+
+  node.select(".g-republican circle").attr "clip-path", (d) ->
+    (if d.k > 0 then "url(#g-clip-republican-" + d.id + ")" else null)
+
+  node.select(".g-split").attr("x1", (d) ->
+    -d.r + 2 * d.r * d.k
+  ).attr("y1", (d) ->
+    -Math.sqrt(d.r * d.r - Math.pow(-d.r + 2 * d.r * d.k, 2))
+  ).attr("x2", (d) ->
+    -d.r + 2 * d.r * d.k
+  ).attr "y2", (d) ->
+    Math.sqrt d.r * d.r - Math.pow(-d.r + 2 * d.r * d.k, 2)
+
+  node.selectAll("circle").attr "r", (d) ->
+    r d.count
+
+fraction = (a, b) ->
+  k = a / (a + b)
+  if k > 0 and k < 1
+    t0 = undefined
+    t1 = Math.pow(12 * k * Math.PI, 1 / 3)
+    i = 0 # Solve for theta numerically.
+
+    while i < 10
+      t0 = t1
+      t1 = (Math.sin(t0) - t0 * Math.cos(t0) + 2 * k * Math.PI) / (1 - Math.cos(t0))
+      ++i
+    k = (1 - Math.cos(t1 / 2)) / 2
+  k
+
+
+    # radius will be set to 0 initially.
+    # see transition below
 
   show_details: (data, i, element) =>
     d3.select(element).attr("stroke", "black")
