@@ -15,14 +15,14 @@ class BubbleChart
     @nodes = []
     @force = null
     @circles = null
-
+  
     # Changed colors to political themes
     @fill_color = d3.scale.ordinal()
       .domain(["Liberal", "Split", "Mostly Conservative", "Conservative"])
-      .range(["#70a7db", "#7f7f7f", "#fda4a7", "#fc7277"])
+      .range(["#70a7db", "#404040", "#fda4a7", "#fc7277"])
 
     max_amount = d3.max(@data, (d) -> parseInt(d.total))
-    @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([2,85])
+    @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([8,100])
     
     this.create_nodes()
     this.create_vis()
@@ -38,15 +38,14 @@ class BubbleChart
         conservative: d.conservative
         ratio: d.ratio
         leaning: d.leaning
-        x: Math.random() * 900
-        y: Math.random() * 800
+        x: d.x
+        y: d.y
       }
       
       @nodes.push node
 
     @nodes.sort (a,b) -> b.value - a.value
-
-
+    
   # create svg at #vis and then 
   # create circle representation for each node
   create_vis: () =>
@@ -68,13 +67,16 @@ class BubbleChart
       .attr("stroke-width", 2)
       .attr("stroke", (d) => d3.rgb(@fill_color(d.leaning)).darker())
       .attr("id", (d) -> "bubble_#{d.id}")
+      .attr("cx", (d) => d.x)
+      .attr("cy", (d) => d.y)
       .on("mouseover", (d,i) -> that.show_details(d,i,this))
       .on("mouseout", (d,i) -> that.hide_details(d,i,this))
             
     @circles.transition().duration(2000).attr("r", (d) => d.radius)
     
-  charge: (d) ->
-    -Math.pow(d.radius, 2.0) / 6
+    
+   charge: (d) ->
+    -Math.pow(d.radius, 2.0) / 5.75
 
   # Starts up the force layout with
   # the default values
@@ -91,8 +93,8 @@ class BubbleChart
       .friction(0.9)
       .on "tick", (e) =>
         @circles.each(this.move_towards_center(e.alpha))
-          .attr("cx", (d) -> d.x)
-          .attr("cy", (d) -> d.y)
+          .attr("cx", (d) => d.x)
+          .attr("cy", (d) => d.y)
     @force.start()
 
   # Moves all circles towards the @center
@@ -102,13 +104,13 @@ class BubbleChart
       d.x = d.x + (@center.x - d.x) * (@damper + 0.03) * alpha
       d.y = d.y + (@center.y - d.y) * (@damper + 0.03) * alpha
 
+
   show_details: (data, i, element) =>
     d3.select(element).attr("stroke", "black")
     content = "<span class=\"name\">Title:</span><span class=\"value\"> #{data.name}</span><br/>"
     content +="<span class=\"name\">Amount:</span><span class=\"value\"> $#{addCommas(data.value)}</span><br/>"
     content +="<span class=\"name\">Leaning</span><span class=\"value\"> #{data.leaning}</span>"
     @tooltip.showTooltip(content,d3.event)
-
 
   hide_details: (data, i, element) =>
     d3.select(element).attr("stroke", (d) => d3.rgb(@fill_color(d.leaning)).darker())
