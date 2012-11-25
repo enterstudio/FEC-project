@@ -3,10 +3,13 @@ a, a:visited, a:active {
 }
 
 #vis {
-  width: 940px;
+  width: 864px;
   height: 600px;
   clear: both;
-  margin-bottom: 10px;
+  position: absolute;
+  top: 75px;
+  left: 160px;
+  z-index: 1;
 }
 
 footer {
@@ -15,6 +18,27 @@ footer {
 
 #view_selection {
   margin-top: 10px;
+}
+
+h1.headline {
+font-family: 'Playfair Display SC', serif;
+font-size: 50px;
+text-transform: capitalize;
+position: absolute;
+top: 30px;
+left: 60px;
+}
+
+p.body {
+font-family: 'Georgia', serif;
+font-size: 1.15em; 
+line-height: 1.3em;
+width: 230px;
+height: 340px;
+position: absolute;
+top: 120px;
+left: 60px;
+z-index: 11;
 }
 
 .tooltip {

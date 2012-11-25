@@ -18,8 +18,8 @@ class BubbleChart
   
     # Changed colors to political themes
     @fill_color = d3.scale.ordinal()
-      .domain(["Liberal", "Split", "Mostly Conservative", "Conservative"])
-      .range(["#70a7db", "#404040", "#fda4a7", "#fc7277"])
+      .domain(["Liberal", "Split spending between political leanings", "Mostly conservative (About a quarter of its spending supported democrats or opposed conservatives)", "Conservative"])
+      .range(["#70a7db", "#e6e6e6", "#fda4a7", "#fc7277"])
 
     max_amount = d3.max(@data, (d) -> parseInt(d.total))
     @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([8,100])
