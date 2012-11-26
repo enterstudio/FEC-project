@@ -8,7 +8,7 @@ a, a:visited, a:active {
   clear: both;
   position: absolute;
   top: 75px;
-  left: 120px;
+  left: 160px;
   z-index: 1;
 }
 
@@ -22,8 +22,7 @@ footer {
 
 h1.headline {
 font-family: 'Playfair Display SC', serif;
-font-size: 45px;
-line-height: 1.2em;
+font-size: 50px;
 text-transform: capitalize;
 position: absolute;
 top: 30px;
