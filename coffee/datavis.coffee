@@ -3,6 +3,7 @@ class BubbleChart
     @data = data
     @width = 940
     @height = 600
+    
 
     @tooltip = CustomTooltip("gates_tooltip", 240)
 
@@ -38,8 +39,8 @@ class BubbleChart
         conservative: d.conservative
         ratio: d.ratio
         leaning: d.leaning
-        x: d.x
-        y: d.y
+ 	    x: Math.random() * 900
+		y: Math.random() * 800
       }
       
       @nodes.push node
@@ -50,10 +51,10 @@ class BubbleChart
   # create circle representation for each node
   create_vis: () =>
     @vis = d3.select("#vis").append("svg")
-      .attr("width", @width)
-      .attr("height", @height)
+	  .attr("width", @width)
+	  .attr("height", @height)
       .attr("id", "svg_vis")
-
+      
     @circles = @vis.selectAll("circle")
       .data(@nodes, (d) -> d.id)
 
@@ -67,8 +68,6 @@ class BubbleChart
       .attr("stroke-width", 2)
       .attr("stroke", (d) => d3.rgb(@fill_color(d.leaning)).darker())
       .attr("id", (d) -> "bubble_#{d.id}")
-      .attr("cx", (d) => d.x)
-      .attr("cy", (d) => d.y)
       .on("mouseover", (d,i) -> that.show_details(d,i,this))
       .on("mouseout", (d,i) -> that.hide_details(d,i,this))
             
@@ -76,7 +75,7 @@ class BubbleChart
     
     
    charge: (d) ->
-    -Math.pow(d.radius, 2.0) / 5.75
+     -Math.pow(d.radius, 2.0) / 5.75
 
   # Starts up the force layout with
   # the default values
