@@ -22,7 +22,7 @@ class BubbleChart
       .range(["#70a7db", "#e6e6e6", "#fda4a7", "#fc7277"])
 
     max_amount = d3.max(@data, (d) -> parseInt(d.total))
-    @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([8,100])
+    @radius_scale = d3.scale.pow().exponent(0.5).domain([0, max_amount]).range([.5,100])
     
     this.create_nodes()
     this.create_vis()
